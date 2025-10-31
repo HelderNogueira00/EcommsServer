@@ -9,6 +9,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManagerFactory;
 
 public class SSLServer {
@@ -40,6 +41,8 @@ public class SSLServer {
 
             while(true) {
                 
+                SSLSocket clientSocket = (SSLSocket)mSocket.accept();
+                System.out.println("Client Connected");
             }
         }
         catch(Exception _e) { System.out.println("Server Init Exception: " + _e.getMessage()); }
