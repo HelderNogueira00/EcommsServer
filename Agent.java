@@ -11,12 +11,16 @@ public class Agent {
     private SSLSocket mSocket;
     private InputStream mInput;
     private OutputStream mOutput;
-    private volatile boolean running = false;
     private AgentBase mType;
+    private Thread agentThread;
 
-    public Agent(int id, SSLSocket socket) {
+    public Agent(int id) {
 
         mID = id;
+    }
+
+    public void init(SSLSocket socket) {
+
 
         try {
 
@@ -24,32 +28,59 @@ public class Agent {
             mInput = mSocket.getInputStream();
             mOutput = mSocket.getOutputStream();
 
-            running = true;
             mType = new PendingAgent(this);   
-            System.out.println("Agent Connected, Waiting For Authentication: " + mInput);
-            receive();
+            agentThread = new Thread(new Runnable() {
+
+                @Override
+                public void run() { while(true) receive(); } 
+            });
+
+            agentThread.start();
         }
         catch(Exception _e) { System.out.println("Agent Connection Error: " + _e.getMessage()); disconnect(_e.getMessage()); }
     }
 
     public void receive() {
 
-        try {
+       try {
 
-            if (mInput == null)
+             if(mInput == null)
                 return;
 
-            byte[] lengthBuffer = new byte[4];
-            mInput.read(lengthBuffer);
+            ArrayList<Byte> receivedBuffer = new ArrayList<>();
+            while(receivedBuffer.size() < 4) {
 
-            int length = ByteBuffer.allocate(4).put(lengthBuffer).getInt();
-            mType.onPacketReceived(new NetworkPacket(length));
-            System.out.println("Packet Length: " + length);
+                byte val = (byte)mInput.read();
+                if(val == -1)
+                    disconnect("Null byte received!");
+                
+                    receivedBuffer.add(val);
+            }
+            
+            int pckLength = ByteBuffer.allocate(4).put(UtilsManager.ToByteArray(receivedBuffer)).getInt(0);
+            while(receivedBuffer.size() < pckLength + 4) {
 
-            receive();
+                byte val = (byte)mInput.read();
+                if(val == -1)
+                    disconnect("Null byte received!");
+                
+                receivedBuffer.add(val);
+            }
 
+            mType.processPacket(new NetworkPacket(receivedBuffer));
         }
-        catch(Exception _e) { System.out.println("Agent Receiving Error: " + _e.getMessage()); disconnect(_e.getMessage()); }
+        catch(Exception _e) { System.out.println("Client Receiving Error: " + _e.getMessage()); }
+    }
+
+    public void promote(int _type) {
+
+        mType.close();
+        switch(_type) {
+
+            default: disconnect("Invalid Agent!"); break;
+            
+            case AgentTypes.Commander: mType = new CommanderAgent(this); break;
+        }
     }
 
     public void send(NetworkPacket _pck) {
@@ -59,7 +90,6 @@ public class Agent {
             if(mOutput != null) {
 
                 byte[] buffer = _pck.prepare();
-                System.out.println("sending buffer: " + buffer);
                 mOutput.write(buffer);
                 mOutput.flush();
             }
@@ -71,17 +101,30 @@ public class Agent {
 
         try {
 
-            if(mSocket != null) {
-
-                mInput.close();
-                mOutput.close();
+            if(mSocket != null)
                 mSocket.close();
-            }           
+            
+            if(mInput != null)
+                mInput.close();
 
+            if(mOutput != null)
+                mOutput.close();
+
+            if(mType != null)
+                mType.close();
+            
             mInput = null;
             mOutput = null;
             mSocket = null;
+            mType = null;
         }
         catch(Exception _e) { System.out.println("Agent Disconnected: " + _err); }
     } 
+
+    public boolean isConnected() { return mSocket.isConnected() && mInput != null && mOutput != null; }
+
+    public boolean isAvailable() {
+
+        return mSocket == null && mOutput == null && mInput == null && mType == null;
+    }
 }

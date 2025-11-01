@@ -7,10 +7,7 @@ import java.nio.file.Path;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
@@ -24,21 +21,22 @@ public class SSLServer {
     private final int SERVER_PORT;
     private final String SERVER_IP;
 
-    private int agentsCount;
+    private boolean isRunning;
     private SSLContext mContext;
     private SSLServerSocket mSocket;
 
-    public final List<Agent> mAgents = new CopyOnWriteArrayList<>();
-    private final ExecutorService pool = Executors.newCachedThreadPool();
+    private HashMap<Integer, Agent> mAgents;
+    private static SSLServer INSTANCE = null;
 
     public SSLServer(String serverIP, int serverPort, int maxAgents) {
 
-        agentsCount = 0;
+        INSTANCE = this;
         this.SERVER_IP = serverIP;
         this.MAX_AGENTS = maxAgents;
         this.SERVER_PORT = serverPort;
 
-        load();
+        loadVars();
+        loadSSL();
     }
 
     public void init() {
@@ -49,23 +47,45 @@ public class SSLServer {
             SSLServerSocketFactory ssf = mContext.getServerSocketFactory();
             mSocket = (SSLServerSocket)ssf.createServerSocket(SERVER_PORT, 50, addr);
 
-            mSocket.setNeedClientAuth(true);
+            isRunning = true;
+            mSocket.setNeedClientAuth(false);
             System.out.println("SSL Server Has Been Initialized: " + SERVER_IP + ":" + SERVER_PORT);
 
-            while(true) {
-                
-                SSLSocket clientSocket = (SSLSocket)mSocket.accept();
-                Agent agent = new Agent(agentsCount, clientSocket);
-                mAgents.add(agent);
-                pool.submit(agent);
-                s
-                agentsCount++;
-            }
+            while(isRunning)
+                accept();
         }
         catch(Exception _e) { System.out.println("Server Init Exception: " + _e.getMessage()); }
     }
 
-    private void load() {
+    private void accept() {
+
+        try {
+
+            SSLSocket clientSocket = (SSLSocket)mSocket.accept();
+            for(int n = 0; n < MAX_AGENTS; n++) {
+
+                if(mAgents.get(n).isAvailable()) {
+
+                    mAgents.get(n).init(clientSocket);
+                    return;
+                }
+            }
+
+            clientSocket.close();
+            System.out.println("No AVailable SPace For More AGents!");
+        }
+        catch(Exception _e) { System.out.println("Accepting Client Error: " + _e.getMessage()); }
+    }
+
+    private void loadVars() {
+
+        mAgents = new HashMap<>();
+
+        for(int n = 0; n < MAX_AGENTS; n++)
+            mAgents.put(n, new Agent(n));
+    }
+
+    private void loadSSL() {
 
         try {
 
@@ -89,4 +109,6 @@ public class SSLServer {
         }
         catch(Exception _e) { System.out.println("Server Load Exception: " + _e.getMessage()); }
     }
+
+    public static SSLServer getInstance() { return INSTANCE; }
 }

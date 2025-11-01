@@ -1,28 +1,28 @@
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 public abstract class AgentBase {
 
     protected int mID;
     protected Agent mAgent;
-    private HashMap<Integer, String> commandsList;
     
     AgentBase(Agent _base) {
 
         mAgent = _base;
-        commandsList = new HashMap<>();
     }
 
-    public void addCommand(int _id, String _name) {
+    protected void close() {
 
-        commandsList.put(_id, _name);
+        mID = -1;
+        mAgent = null;
+        onClosed();
     }
 
-    public String getCommandName(int id) {
+    public void processPacket(NetworkPacket _pck) {
 
-        return commandsList.get(id);
-    } 
+        int length = _pck.readInt();
+        int commandID = _pck.readInt();
+        onPacketReceived(length, commandID, _pck);
+    }
 
-    public abstract void onPacketReceived(NetworkPacket _pck);
+    public abstract void onClosed();
+    public abstract void onPacketReceived(int length, int commandID, NetworkPacket _pck);
 }

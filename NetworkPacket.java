@@ -11,9 +11,10 @@ public class NetworkPacket {
 
     public NetworkPacket(int _commandID) {
 
-        write(_commandID);
         readIndex = 0;
+        isFinalized = false;
         mBuffer = new ArrayList<>();
+        write(_commandID);
     }
 
     public NetworkPacket(ArrayList<Byte> _packetBuffer) {
@@ -25,21 +26,23 @@ public class NetworkPacket {
 
     public byte[] prepare() {
 
-        System.out.print("Sending pacjet");
-        if(isFinalized)
-            return null;
+        if(isFinalized) {
 
-        isFinalized = true;
-        byte[] buffer = new byte[mBuffer.size() + 4];
+            System.out.print("Packet Already Finalized");
+            return null;
+        }
+
+        ArrayList<Byte> finalBuffer = new ArrayList<>();
         byte[] lengthBuffer = ByteBuffer.allocate(4).putInt(mBuffer.size()).array();
 
-        for(int n = 0; n < lengthBuffer.length; n++)
-            buffer[n] = lengthBuffer[n];
+        for(int n = 0; n < 4; n++)
+            finalBuffer.add(lengthBuffer[n]);
 
         for(int n = 0; n < mBuffer.size(); n++)
-            buffer[n] = mBuffer.get(n + 4);
+            finalBuffer.add(mBuffer.get(n));
         
-        return buffer;
+        isFinalized = true;
+        return UtilsManager.ToByteArray(finalBuffer);
     }
 
     public void write(byte val) {
@@ -84,11 +87,11 @@ public class NetworkPacket {
     }
     public int readInt() {
 
-        return ByteBuffer.allocate(4).put(readFromBuffer(4)).getInt();
+        return ByteBuffer.allocate(4).put(readFromBuffer(4)).getInt(0);
     }
     public float readFloat() {
 
-        return ByteBuffer.allocate(4).put(readFromBuffer(4)).getFloat();
+        return ByteBuffer.allocate(4).put(readFromBuffer(4)).getFloat(0);
     }
     public boolean readBool() {
 
