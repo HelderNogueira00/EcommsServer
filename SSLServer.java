@@ -5,6 +5,12 @@ import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
@@ -14,15 +20,22 @@ import javax.net.ssl.TrustManagerFactory;
 
 public class SSLServer {
 
+    private final int MAX_AGENTS;
     private final int SERVER_PORT;
     private final String SERVER_IP;
 
+    private int agentsCount;
     private SSLContext mContext;
     private SSLServerSocket mSocket;
 
-    public SSLServer(String serverIP, int serverPort) {
+    public final List<Agent> mAgents = new CopyOnWriteArrayList<>();
+    private final ExecutorService pool = Executors.newCachedThreadPool();
 
+    public SSLServer(String serverIP, int serverPort, int maxAgents) {
+
+        agentsCount = 0;
         this.SERVER_IP = serverIP;
+        this.MAX_AGENTS = maxAgents;
         this.SERVER_PORT = serverPort;
 
         load();
@@ -42,7 +55,11 @@ public class SSLServer {
             while(true) {
                 
                 SSLSocket clientSocket = (SSLSocket)mSocket.accept();
-                System.out.println("Client Connected");
+                Agent agent = new Agent(agentsCount, clientSocket);
+                mAgents.add(agent);
+                pool.submit(agent);
+                s
+                agentsCount++;
             }
         }
         catch(Exception _e) { System.out.println("Server Init Exception: " + _e.getMessage()); }

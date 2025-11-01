@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class NetworkPacket {
 
     private int readIndex = 0;
-    private ArrayList<Byte> mBuffer;
+    private ArrayList<Byte> mBuffer = new ArrayList<>();
     private boolean isFinalized = false;
 
     public NetworkPacket(int _commandID) {
@@ -25,15 +25,19 @@ public class NetworkPacket {
 
     public byte[] prepare() {
 
+        System.out.print("Sending pacjet");
         if(isFinalized)
             return null;
 
         isFinalized = true;
-        write(mBuffer.size());
+        byte[] buffer = new byte[mBuffer.size() + 4];
+        byte[] lengthBuffer = ByteBuffer.allocate(4).putInt(mBuffer.size()).array();
 
-        byte[] buffer = new byte[mBuffer.size()];
+        for(int n = 0; n < lengthBuffer.length; n++)
+            buffer[n] = lengthBuffer[n];
+
         for(int n = 0; n < mBuffer.size(); n++)
-            buffer[n] = mBuffer.get(n);
+            buffer[n] = mBuffer.get(n + 4);
         
         return buffer;
     }
