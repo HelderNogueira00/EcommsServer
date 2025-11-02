@@ -42,14 +42,14 @@ public class PendingAgent extends AgentBase {
 
                 if(token.equals(clientToken)) {
 
-                    pck.write(0);
+                    pck.write(EnumsList.AUTHENTICATION_GRANTED);
                     mAgent.send(pck);
                     mAgent.promote(type);
                     return;
                 }
             }
 
-            pck.write(1);
+            pck.write(EnumsList.AUTHENTICATION_DENIED);
             mAgent.send(pck);
             mAgent.promote(-1);
         }
