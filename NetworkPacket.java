@@ -60,6 +60,10 @@ public class NetworkPacket {
 
         incrementBuffer(ByteBuffer.allocate(4).putInt(val).array());
     }
+    public void write(long val) {
+
+        incrementBuffer(ByteBuffer.allocate(8).putLong(val).array());
+    }
     public void write(float val) {
 
         incrementBuffer(ByteBuffer.allocate(4).putFloat(val).array());
@@ -88,6 +92,10 @@ public class NetworkPacket {
     public int readInt() {
 
         return ByteBuffer.allocate(4).put(readFromBuffer(4)).getInt(0);
+    }
+    public long readLong() {
+
+        return ByteBuffer.allocate(8).put(readFromBuffer(8)).getLong(0);
     }
     public float readFloat() {
 

@@ -26,11 +26,15 @@ public class SSLServer {
     private SSLServerSocket mSocket;
 
     private HashMap<Integer, Agent> mAgents;
+    public DownloadsManager downloadsManager;
     private static SSLServer INSTANCE = null;
 
     public SSLServer(String serverIP, int serverPort, int maxAgents) {
 
         INSTANCE = this;
+        downloadsManager = new DownloadsManager(10);
+        downloadsManager.load();
+
         this.SERVER_IP = serverIP;
         this.MAX_AGENTS = maxAgents;
         this.SERVER_PORT = serverPort;
