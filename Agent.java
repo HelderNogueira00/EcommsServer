@@ -80,6 +80,7 @@ public class Agent {
             default: disconnect("Invalid Agent!"); break;
             
             case AgentTypes.Commander: mType = new CommanderAgent(this); break;
+            case AgentTypes.HomeAutomation: mType = new HomeAutomationAgent(this); break;
         }
     }
 

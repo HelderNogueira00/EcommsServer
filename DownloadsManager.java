@@ -35,9 +35,12 @@ public class DownloadsManager {
 
         for(int n = 0; n < maxSize; n++) {
 
+            System.out.println("Creating Item: " + _path);
             if(mItems.get(n).isAvailable()) {
 
+                System.out.println("Creating Item: " + _path);
                 mItems.get(n).assign(_path);
+                System.out.println("Creating Item: " + _path);
                 return mItems.get(n);
             }
         }

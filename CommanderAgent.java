@@ -33,7 +33,24 @@ public class CommanderAgent extends AgentBase {
             case Connectivity -> checkConnectivity(_pck);
             case OnPlayRequest -> onPlayLocalReceived(_pck);
             case OnTransferStart -> onTransferStart(_pck);
+            case OnTransferData -> onTransferData(_pck);
+            case OnTransferEnd -> onTransferEnd(_pck);
         }
+    }
+
+    private void onTransferEnd(NetworkPacket _pck) {
+
+        System.out.println("transfer ended");
+        int itemID = _pck.readInt();
+        long writtenLength = _pck.readLong();
+        DownloadItem item = DownloadsManager.getInstance().getItem(itemID);
+
+        if(item.length == writtenLength) {
+
+            System.out.println("File TRansfered Successfully!");
+        }
+        else
+            System.out.println("File TRansfer Error.");
     }
 
     private void onTransferData(NetworkPacket _pck) {
@@ -41,18 +58,31 @@ public class CommanderAgent extends AgentBase {
         int itemID = _pck.readInt();
         long writtenLength = _pck.readLong();
         DownloadItem currentItem = DownloadsManager.getInstance().getItem(itemID);
-        
+
         if(currentItem != null) {
+        System.out.println("transfer in progress");
 
             if(currentItem.readPos == writtenLength) {
 
-                if()
-                NetworkPacket pck = new NetworkPacket(OnTransferData);
-                pck.write(itemID);
-                pck.write(iyem);
+                if(currentItem.readPos < currentItem.length) {
+
+                    byte[] buffer = currentItem.readBlock();
+                    NetworkPacket pck = new NetworkPacket(OnTransferData);
+                    pck.write(itemID);
+                    pck.write(buffer.length);
+                    pck.write(buffer);
+                    mAgent.send(pck);
+                }
+                else {
+
+                    NetworkPacket pck = new NetworkPacket(OnTransferEnd);
+                    pck.write(currentItem.id);
+                    pck.write(currentItem.readPos);
+                    mAgent.send(pck);
+                }
             } else {
 
-                //Resend Packet, MAYBE?
+                System.out.println("Packet Not Received Correctly!");
             }
         }
     }
@@ -68,8 +98,9 @@ public class CommanderAgent extends AgentBase {
 
         int type = _pck.readInt();
         String name = _pck.readString();
-        String filePath = BashManager.RunCommand("ecomms_play.sh --play " + "\"" + name + "\"");
+        String filePath = BashManager.RunCommand(EnvironmentVars.EcommsBashAPI + "ecomms_play.sh --play " + "\"" + name + "\"");
         DownloadItem item = DownloadsManager.getInstance().createItem(filePath);
+        System.out.println("Path: " + item.path);
 
         if(item != null) {
 
@@ -96,6 +127,7 @@ public class CommanderAgent extends AgentBase {
             DownloadItem item = DownloadsManager.getInstance().getItem(itemID);
             byte[] buffer = item.readBlock();
 
+            System.out.println("Starting TRansfer: ");
             NetworkPacket pck = new NetworkPacket(OnTransferData);
             pck.write(item.id);
             pck.write(buffer.length);

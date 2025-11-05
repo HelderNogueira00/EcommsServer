@@ -15,10 +15,12 @@ import java.io.FileInputStream;
     public DownloadItem(int _id) {
 
         this.id = _id;
+        this.path = "";
     }
 
     public void assign(String _path) {
 
+        path = _path;
         try {
 
             File f = new File(_path);
@@ -28,7 +30,7 @@ import java.io.FileInputStream;
             readPos = 0;
             blockSize = 512000;
         }
-        catch(Exception _e) { _e.printStackTrace(); }
+        catch(Exception _e) { System.out.println("Exception Creating Item: " + _e.getMessage()); }
     }
 
     public byte[] readBlock() {
@@ -51,7 +53,6 @@ import java.io.FileInputStream;
         catch(Exception _e) { System.out.println("Error Reading DOwnload Item: " + _e.getMessage()); }
         return buffer;
     }
-
 
 
     public void clean() {
