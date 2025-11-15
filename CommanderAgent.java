@@ -8,6 +8,8 @@ public class CommanderAgent extends AgentBase {
     public final int OnTransferEnd = 7;
     public final int FileExists = 8;
     public final int FileExistsResult = 9;
+    public static final int PowerOnPlug = 2001;
+    public static final int PowerOffPlug = 2002;
 
     private int waitingCommand = -1;
 
@@ -35,7 +37,43 @@ public class CommanderAgent extends AgentBase {
             case OnTransferStart -> onTransferStart(_pck);
             case OnTransferData -> onTransferData(_pck);
             case OnTransferEnd -> onTransferEnd(_pck);
+            case PowerOnPlug -> onPowerOn(_pck);
+            case PowerOffPlug -> onPowerOff(_pck);
         }
+    }
+
+    private void onPowerOn(NetworkPacket _pck) {
+
+        String username = _pck.readString();
+        Agent agent = SSLServer.getInstance().getAgentByUsername(username);
+
+        if(agent == null) {
+
+            System.out.println("No AGent Found With THis Username: " + username);
+            return;
+        }
+
+        System.out.println("Sending Poweron plug");
+        NetworkPacket pck = new NetworkPacket(PowerOnPlug);
+        pck.write(0);
+        agent.send(pck);
+    }
+
+    private void onPowerOff(NetworkPacket _pck) {
+
+        String username = _pck.readString();
+        Agent agent = SSLServer.getInstance().getAgentByUsername(username);
+
+        if(agent == null) {
+
+            System.out.println("No AGent Found With THis Username: " + username);
+            return;
+        }
+
+        System.out.println("Sending Poweroff plug");
+        NetworkPacket pck = new NetworkPacket(PowerOffPlug);
+        pck.write(0);
+        agent.send(pck);
     }
 
     private void onTransferEnd(NetworkPacket _pck) {

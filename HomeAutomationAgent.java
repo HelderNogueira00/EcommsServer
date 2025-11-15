@@ -1,11 +1,16 @@
 public class HomeAutomationAgent extends AgentBase {
 
-    private static final int OnPowerOn = 100;
-    private static final int OnPowerOff = 101;
+    private static final int AgentConnected = 2;
+        public static final int PowerOnPlug = 2001;
+        public static final int PowerOffPlug = 2002;
 
     public HomeAutomationAgent(Agent _base) {
 
         super(_base);
+
+        NetworkPacket pck = new NetworkPacket(AgentConnected);
+        pck.write(EnumsList.AGENT_ANDROID_HOME);
+        mAgent.send(pck);
     }
 
     @Override
@@ -19,18 +24,7 @@ public class HomeAutomationAgent extends AgentBase {
 
         switch(_commandID) {
 
-            case OnPowerOn -> onPowerOn(_pck);
-            case OnPowerOff -> onPowerOff(_pck);
+            
         }
-    }
-
-    private void onPowerOn(NetworkPacket _pck) {
-
-        
-    }
-
-    private void onPowerOff(NetworkPacket _pck) {
-
-
     }
 }

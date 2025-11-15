@@ -8,6 +8,7 @@ import javax.net.ssl.SSLSocket;
 public class Agent {
 
     private final int mID;
+    private String mUsername;
     private SSLSocket mSocket;
     private InputStream mInput;
     private OutputStream mOutput;
@@ -39,6 +40,8 @@ public class Agent {
         }
         catch(Exception _e) { System.out.println("Agent Connection Error: " + _e.getMessage()); disconnect(_e.getMessage()); }
     }
+
+    public String getUsername() { return mUsername; }
 
     public void receive() {
 
@@ -72,15 +75,17 @@ public class Agent {
         catch(Exception _e) { System.out.println("Client Receiving Error: " + _e.getMessage()); }
     }
 
-    public void promote(int _type) {
+    public void promote(int _type, String _username) {
 
         mType.close();
+        mUsername = _username;
+        System.out.println("Promoting to : " + _type);
         switch(_type) {
 
             default: disconnect("Invalid Agent!"); break;
             
-            case AgentTypes.Commander: mType = new CommanderAgent(this); break;
-            case AgentTypes.HomeAutomation: mType = new HomeAutomationAgent(this); break;
+            case EnumsList.AGENT_COMMANDER: mType = new CommanderAgent(this); break;
+            case EnumsList.AGENT_ANDROID_HOME: mType = new HomeAutomationAgent(this); break;
         }
     }
 

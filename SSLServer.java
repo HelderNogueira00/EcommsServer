@@ -114,5 +114,21 @@ public class SSLServer {
         catch(Exception _e) { System.out.println("Server Load Exception: " + _e.getMessage()); }
     }
 
+    public Agent getAgentByID(int _id) {
+
+        return mAgents.get(_id);
+    }
+
+    public Agent getAgentByUsername(String _username) {
+
+        for(int n = 0; n < MAX_AGENTS; n++) {
+
+            if(mAgents.get(n).getUsername().contains(_username))
+                return mAgents.get(n);
+        }
+
+        return null;
+    }
+
     public static SSLServer getInstance() { return INSTANCE; }
 }

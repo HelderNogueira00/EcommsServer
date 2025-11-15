@@ -33,25 +33,27 @@ public class PendingAgent extends AgentBase {
             pck.write(1);
 
             String clientToken = UtilsManager.ToAES256HashString(_pck.readString());
+            System.out.println("Received Token: " + clientToken);
             String[] tokensList = new String(UtilsManager.ReadFile(EnvironmentVars.AuthListFile)).split("\\n");
             
             for(String s : tokensList) {
 
                 String token = s.split(":")[0];
+                String username = s.split(":")[2];
                 int type = Integer.parseInt(s.split(":")[1]);
 
                 if(token.equals(clientToken)) {
 
                     pck.write(EnumsList.AUTHENTICATION_GRANTED);
                     mAgent.send(pck);
-                    mAgent.promote(type);
+                    mAgent.promote(type, username);
                     return;
                 }
             }
 
             pck.write(EnumsList.AUTHENTICATION_DENIED);
             mAgent.send(pck);
-            mAgent.promote(-1);
+            mAgent.promote(-1, "");
         }
         catch(Exception _e) { System.out.println("Agent Auth Error: " + _e.getMessage()); }
     }
