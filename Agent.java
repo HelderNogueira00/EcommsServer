@@ -41,14 +41,19 @@ public class Agent {
         catch(Exception _e) { System.out.println("Agent Connection Error: " + _e.getMessage()); disconnect(_e.getMessage()); }
     }
 
+    public String getRemoteIP() { return mSocket.getInetAddress().toString(); }
+
     public String getUsername() { return mUsername; }
 
     public void receive() {
 
        try {
 
-             if(mInput == null)
+             if(mInput == null) {
+
+                disconnect("null socket!");
                 return;
+             }
 
             ArrayList<Byte> receivedBuffer = new ArrayList<>();
             while(receivedBuffer.size() < 4) {
@@ -72,7 +77,7 @@ public class Agent {
 
             mType.processPacket(new NetworkPacket(receivedBuffer));
         }
-        catch(Exception _e) { System.out.println("Client Receiving Error: " + _e.getMessage()); }
+        catch(Exception _e) { System.out.println("Client Receiving Error: " + _e.getMessage()); disconnect("error receivinf"); }
     }
 
     public void promote(int _type, String _username) {

@@ -70,7 +70,7 @@ public class CommanderAgent extends AgentBase {
             return;
         }
 
-        System.out.println("Sending Poweroff plug");
+        System.out.println("Sending Poweroff plug: " + agent.getRemoteIP());
         NetworkPacket pck = new NetworkPacket(PowerOffPlug);
         pck.write(0);
         agent.send(pck);

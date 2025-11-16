@@ -5,7 +5,7 @@ public class Main {
         SSLServer server = new SSLServer("10.8.0.1", 4520, 10);
         server.init();
 
-        //String clientToken = UtilsManager.ToAES256HashString("a1g65sd4g6s45fz45fz54f5z4f5sad4f'asas&SH48D61S53LZ0EGsfhdf04·nkjldsd");
+        //String clientToken = UtilsManager.ToAES256HashString("4d564gy51uz31pç5@135a13e1645HD61g5re4#CB9w2g1f3&");
         //System.out.println(clientToken);
     }
 }
